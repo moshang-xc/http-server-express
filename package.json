@@ -1,0 +1,20 @@
+{
+    "name": "express",
+    "version": "1.0.0",
+    "description": "a simple static web server base on Express",
+    "main": "index.js",
+    "bin": {
+      "tiny-http": "index.js"
+    },
+    "scripts": {
+      "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "author": "moshang",
+    "license": "ISC",
+    "dependencies": {
+      "body-parser": "^1.18.2",
+      "chokidar": "^2.0.3",
+      "express": "^4.16.3",
+      "opn": "^5.3.0"
+    }
+}

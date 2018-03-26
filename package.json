@@ -10,6 +10,11 @@
       "test": "echo \"Error: no test specified\" && exit 1"
     },
     "author": "moshang",
+    "repository": {
+      "type": "git",
+      "url": "git+https://github.com/moshang-xc/web-server.git"
+    },
+    "homepage": "https://github.com/moshang-xc/web-server#readme",
     "license": "ISC",
     "dependencies": {
       "body-parser": "^1.18.2",

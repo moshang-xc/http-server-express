@@ -34,14 +34,13 @@ dist
 │   └── index.js
 └── index.html
 
-```
+#所有的数据文件都存储在goform文件夹下的index.json文件中
+#对应一个请求`getOnlineUsers`，在json文件中的存在格式如下
 
-### 所有的数据文件都存储在goform文件夹下的index.json文件中
-### 对应一个请求`getOnlineUsers`，在json文件中的存在格式如下
-```
 {
     "getOnlineUsers":[
         ...
     ]
 }
+
 ```

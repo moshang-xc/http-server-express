@@ -4,7 +4,7 @@ const bodyParser = require('body-parser');
 const path = require('path');
 const chokidar = require('chokidar');
 
-let {getIndexPage, loadData, handleData, readFile} = require('./help');
+let {getIndexPage, loadData, handleData, readFile, loadFileData} = require('./help');
 
 let app = express(),
     router = express.Router(),
@@ -65,7 +65,7 @@ router.all('*', (req, res) => {
     if(req.method === 'get'){
         res.set('Content-Type', 'text/html');
         res.send(defaultPage);
-    }else{     
+    }else if(req.method === 'post'){     
         let postBackData = {};
         if(Object.prototype.toString(req.body) === '[object Object]'){
             for (let key in req.body) {
@@ -84,28 +84,41 @@ router.all('*', (req, res) => {
 app.use(router);
 
 defaultPage = getIndexPage() || "Show Default Mess!";
-let dataPath = loadData((data, filePath)=>{
-    curData = data;
+
+loadData((data)=>{
+    Object.assign(curData, data);
 });
 
 //数据文件监控
-chokidar.watch(path.join(cwd, 'goform')).on('change', (event, path) => {
+chokidar.watch(path.join(cwd, 'goform')).on('change', (fielpath) => {
     console.log('########################################');
-    console.log(`Data File has been changed`);
-    loadData((data) => {
-        curData = data;
-        console.log('Data Updated!');
-        console.log('########################################');
-    }, dataPath);
+    console.log(`Data "${fielpath}" has been changed`);
+    try{
+        setTimeout(() => {
+            loadFileData(fielpath, (data) => {
+                Object.assign(curData, data);
+                console.log('Data Updated!');
+                console.log('########################################');
+            });
+        }, 0);
+    }catch(e){
+        console.error(e);
+    }
 });
 
 module.exports = {
-    run : function(){        
+    run : function(){   
+        let openBrowser = true;     
+        if(process.argv.length >3){
+            if(process.argv[3] && (process.argv[3] + '').toLowerCase() === 'n'){
+                openBrowser = false;
+            }
+        }
         let server = app.listen(port, () => {
             let host = server.address().address;
             let port = server.address().port;
             console.log(`Example app listenig at http://${host}:${port}`);
-            opn(`http://127.0.0.1:${port}`);
+            openBrowser && opn(`http://127.0.0.1:${port}`);
         });
     }
 }

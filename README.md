@@ -12,6 +12,9 @@ cd dist
 #http-mini port
 http-mini 8083
 
+#http-mini port n/y
+http-mini 8088 n  //n表示不自动打开浏览器窗口
+
 #具体使用示例可以见下面
 ```
 

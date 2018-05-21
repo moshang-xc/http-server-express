@@ -1,6 +1,6 @@
 {
   "name": "http-mini",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "a simple static web server base on Express",
   "main": "index.js",
   "bin": {

@@ -24,42 +24,71 @@ function getIndexPage() {
  * 
  * @param {function} callback 数据读取后的回调，该地方采用异步进行文件读取
  */
-function loadData(callback, dataPath = ''){
-    let fileObj = {}; //用于存储
-    if(!dataPath){
-        let rootPath = travelPath(cwd);
+function loadData(callback){
 
-        console.log(`检索到的数据文件地址为：${rootPath}`);
-        if(rootPath){
-            //判断是单个数据文件还是多个数据文件
-            DATAFILE.every((file, index) => {
-                dataPath = path.join(rootPath, file);
-                if(fs.existsSync(dataPath)){
-                    return false;
-                }
-                dataPath = '';
-            });
-        }else{
-            console.log('没有检索到任何数据文件信息.')
-        }
-    }
-
-    //只有一个数据文件
-    if(dataPath){
-        fs.readFile(dataPath, function (err, fileStr) {
-            if (err) {
-                console.error(err)
-            }
-            setTimeout(() => {
-                let obj = JSON.parse(fileStr.toString('utf-8'));
-                callback(obj);
-            }, 0);
-        });
-    }else{
-        console.log('没有检索到任何数据文件信息.')
-    }
+    // let fileObj = {}; //用于存储
+    // if(!dataPath){
+    let rootPath = travelPath(cwd);
+    let paths = scanJSONFile(rootPath) || [];
     
-    return dataPath;
+    if(paths.length === 0){
+        console.log('没有检索到任何数据文件信息.');
+        return;
+    }
+
+    paths.forEach(item => {
+        loadFileData(item, callback);
+    });
+}
+
+
+function loadFileData(filePath, callback){
+    if(fs.existsSync(filePath)){
+        fs.readFile(filePath, function (err, fileStr) {
+            if (err || !fileStr) {
+                console.error(err);
+                return;
+            }
+            try{    
+                let obj = JSON.parse(fileStr.toString('utf-8'));
+                let key = filePath.substring(filePath.indexOf('goform') + 7);
+                key = key.substring(0, key.lastIndexOf('/')) || "";
+                let obj1 = {};
+                if(key){
+                    for(let t in obj){
+                        if(isObject(obj[t])){
+                            obj1[key + t] = obj[t];
+                        }else{
+                            obj1[t] = obj[t];
+                        }
+                    }
+                }else{
+                    obj1 = obj;
+                }
+                callback(obj1);
+            }catch(e){
+                console.log(`解析数据文件出错：${e}`);
+            }
+        });
+        console.log(`检索到的数据文件地址为：${filePath}`);
+    }
+}
+
+function isObject(obj){
+    return Object.prototype.toString.call(obj) === '[object Object]';
+}
+
+function scanJSONFile(filePath){
+    let paths = [];
+    fs.readdirSync(filePath).forEach(item => {
+        let pathname = path.join(filePath, item);
+        if (fs.statSync(pathname).isDirectory()) {
+            paths = paths.concat(scanJSONFile(pathname));
+        }else if(/\.json$/.test(pathname)){
+            paths.push(pathname.replace(/\\/g, '/'));
+        }
+    });
+    return paths;
 }
 
 function travelPath(dir){
@@ -201,5 +230,6 @@ module.exports = {
     getIndexPage,
     loadData,
     readFile,
+    loadFileData,
     handleData
 }

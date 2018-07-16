@@ -4,30 +4,39 @@ const bodyParser = require('body-parser');
 const path = require('path');
 const chokidar = require('chokidar');
 
-let {getIndexPage, loadData, handleData, readFile, loadFileData} = require('./help');
+let {
+    getIndexPage,
+    loadData,
+    handleData,
+    readFile,
+    loadFileData
+} = require('./help');
 
 let app = express(),
     router = express.Router(),
     cwd = process.cwd(),
-    port = 8090;
-let curData = {}, defaultPage;
+    port = 8090,
+    curData = {},
+    defaultPage;
 
-app.use(bodyParser.json({limit: '1mb'}));  //这里指定参数使用 json 格式
+app.use(bodyParser.json({
+    limit: '1mb'
+})); //这里指定参数使用 json 格式
+
 app.use(bodyParser.urlencoded({
-  extended: true
+    extended: true
 }));
 
-if(process.argv.length >2){
+if (process.argv.length > 2) {
     port = process.argv[2];
 }
+
 app.get(/\.asp$/, (req, res, next) => {
-    // console.log(req.method);
-    // console.log(req.url);
     let file = readFile(path.join(cwd, req.url));
     res.set('Content-Type', 'text/html');
-    if(file){
+    if (file) {
         res.send(file);
-    }else{
+    } else {
         res.send(defaultPage);
     }
 });
@@ -48,33 +57,39 @@ app.post('/goform/module', (req, res) => {
     handleData(curData, reqData);
     //构造返回的数据结果
     for (let key in reqData) {
-        if(reqData.hasOwnProperty(key)){
+        if (reqData.hasOwnProperty(key)) {
             postBackData[key] = curData[key] || defaultData;
         }
     }
 
-    console.log(`请求内容：${JSON.stringify(reqData, 2)}`);
-    console.log(`请求返回: ${JSON.stringify(postBackData, 2)}`);
-    console.log("-----------------------------------------------");
+    global.console.log(`请求内容：${JSON.stringify(reqData, 2)}`);
+    global.console.log(`请求返回: ${JSON.stringify(postBackData, 2)}`);
+    global.console.log("-----------------------------------------------");
     res.send(JSON.stringify(postBackData));
 });
 
 //对于匹配不到的路径或者请求，返回默认页面
 //区分不同的请求返回不同的页面内容
 router.all('*', (req, res) => {
-    if(req.method === 'get'){
-        res.set('Content-Type', 'text/html');
-        res.send(defaultPage);
-    }else if(req.method === 'post'){     
+    if (req.method.toLowerCase() === 'get') {
+        if (/\.(html|htm)/.test(req.originalUrl)) {
+            res.set('Content-Type', 'text/html');
+            res.send(defaultPage);
+        } else {
+            res.status(404).end();
+        }
+    } else if (req.method.toLowerCase() === 'post') {
         let postBackData = {};
-        if(Object.prototype.toString(req.body) === '[object Object]'){
+        if (Object.prototype.toString(req.body) === '[object Object]') {
             for (let key in req.body) {
-                if(reqData.hasOwnProperty(key)){
+                if (curData.hasOwnProperty(key)) {
                     postBackData[key] = curData[key] || 0;
                 }
             }
-        }else{
-            postBackData = {errorCode: 0};
+        } else {
+            postBackData = {
+                errorCode: 0
+            };
         }
         res.send(JSON.stringify(postBackData));
     }
@@ -85,40 +100,40 @@ app.use(router);
 
 defaultPage = getIndexPage() || "Show Default Mess!";
 
-loadData((data)=>{
+loadData((data) => {
     Object.assign(curData, data);
 });
 
 //数据文件监控
 chokidar.watch(path.join(cwd, 'goform')).on('change', (fielpath) => {
-    console.log('########################################');
-    console.log(`Data "${fielpath}" has been changed`);
-    try{
+    global.console.log('########################################');
+    global.console.log(`Data "${fielpath}" has been changed`);
+    try {
         setTimeout(() => {
             loadFileData(fielpath, (data) => {
                 Object.assign(curData, data);
-                console.log('Data Updated!');
-                console.log('########################################');
+                global.console.log('Data Updated!');
+                global.console.log('########################################');
             });
         }, 0);
-    }catch(e){
-        console.error(e);
+    } catch (e) {
+        global.console.error(e);
     }
 });
 
 module.exports = {
-    run : function(){   
-        let openBrowser = true;     
-        if(process.argv.length >3){
-            if(process.argv[3] && (process.argv[3] + '').toLowerCase() === 'n'){
+    run: function() {
+        let openBrowser = true;
+        if (process.argv.length > 3) {
+            if (process.argv[3] && (process.argv[3] + '').toLowerCase() === 'n') {
                 openBrowser = false;
             }
         }
         let server = app.listen(port, () => {
             let host = server.address().address;
             let port = server.address().port;
-            console.log(`Example app listenig at http://${host}:${port}`);
+            global.console.log(`Example app listenig at http://${host}:${port}`);
             openBrowser && opn(`http://127.0.0.1:${port}`);
         });
     }
-}
+};

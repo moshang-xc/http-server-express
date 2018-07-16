@@ -10,7 +10,8 @@
             "request": "launch",
             "name": "启动程序",
             "program": "${workspaceFolder}\\index.js",
-            "cwd": "D:\\Project\\MR9\\MR9\\dist"
+            // "cwd": "D:\\Project\\MR9\\MR9\\dist"
+            "cwd": "D:\\Git\\chart\\RChart"
         }
     ]
 }
